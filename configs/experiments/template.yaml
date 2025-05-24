@@ -1,0 +1,44 @@
+# 简单推理实验配置模板
+
+# 实验基本信息
+name: "simple_qa_inference"
+description: "简单的问答推理实验"
+
+# 模型配置
+model:
+  name: "qwen25"
+  path: "/path/to/your/model"  # 修改为你的模型路径
+  tensor_parallel_size: 8
+  gpu_memory_utilization: 0.9
+  trust_remote_code: true
+
+# 推理参数
+inference:
+  max_tokens: 2048
+  batch_size: 16
+  temperature: 0.1
+  top_p: 0.9
+
+# 数据处理
+data:
+  input_file: "datas/questions.json"       # 输入问题文件
+  output_file: "results/answers.json"      # 输出答案文件
+  original_field: "question"               # 原始问题字段名
+  prompt_field: "prompt"                   # prompt字段名
+  response_field: "answer"                 # 模型回答字段名
+
+# Prompt模板配置
+prompts:
+  simple_qa: |
+    请回答以下问题：
+    
+    问题：{question}
+    
+    回答：
+
+# 处理器配置
+processor:
+  module: "processors.template_processor"
+  pre_process: ["validate_data"]           # 只做基本验证
+  build_prompt: "build_prompt"             # 构建prompt
+  post_process: ["extract_answer"]         # 提取答案 
