@@ -17,7 +17,7 @@ inference:
   temperature: 0
   top_p: 0.9
   top_k: -1
-  rollout_num: 10
+  rollout_num: 1
 
 # 数据处理
 data:
@@ -31,7 +31,7 @@ data:
 # Prompt配置
 prompts:
   evaluation_template: "EVALUATION TASK: Please Score the quality of the model's RESPONSE to the given INSTRUCTION based on ONE specific criterion.\n\nSCORING SYSTEM:\n- Provide your final Score as '[SCORE=X]' where X can ONLY be either 0 or 1. [SCORE=0]represents Response fails to meet the criterion, [SCORE=1] represents Response successfully meets the criterion.\n\nEVALUATION CRITERION:\n{criterion}\n\nHere are the INSTRUCTION and the RESPONSE.\nINSTRUCTION: {prompt}\nRESPONSE: {response}\n\nFORMAT: First state your final Score as '[SCORE=X]', then provide your brief reasoning based ONLY on the EVALUATION CRITERION above."
-  score_extraction_pattern: '\[SCORE=(-?\d+(?:\.\d+)?)\]|boxed\{(-?\d+(?:\.\d+)?)\}|Score:?\s+(-?\d+(?:\.\d+)?)'
+  score_extraction_pattern: 'SCORE=(-?\d+(?:\.\d+)?)|boxed\{(-?\d+(?:\.\d+)?)\}|Score:?\s+(-?\d+(?:\.\d+)?)'
 
 # 处理器配置
 processor:

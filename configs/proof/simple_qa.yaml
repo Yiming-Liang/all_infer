@@ -1,0 +1,41 @@
+# 实验基本信息
+name: "proof_1_answer_question"
+description: "proof 项目根据问题生成答案"
+
+# 模型配置
+model:
+  name: "qwen25_7B_Instruct"
+  path: "/map-vepfs/models/Qwen2.5-7B-Instruct"
+  tensor_parallel_size: 4
+  gpu_memory_utilization: 0.9
+  trust_remote_code: true
+
+# 推理参数
+inference:
+  max_tokens: 5120
+  batch_size: 32
+  temperature: 1
+  top_p: 0.9
+  top_k: -1
+  rollout_num: 1 # 默认为1，推理1次
+
+
+# 数据处理
+data:
+  input_file: "datas/proof_data/proving_train.json"
+  output_file: "datas/proof_data/proving_train_qa.json"
+  original_field: "extra_info.question"
+  prompt_field: "question"
+  response_field: "${model.name}_response"
+  num_samples: null # 32 测试可以先跑几条数据试一下
+
+# Prompt配置
+prompts:
+  checklist_check: "{question}"
+
+# 处理器配置
+processor:
+  module: "processors.proof.qa_processor"
+  pre_process: []
+  build_prompt: "build_prompt"
+  post_process: [] 

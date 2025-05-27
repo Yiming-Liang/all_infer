@@ -1,0 +1,41 @@
+# 实验基本信息
+name: "proof_2_score_checklist"
+description: "proof 项目根据checklist并评分"
+
+# 模型配置
+model:
+  name: "qwen25_7B_Instruct"
+  path: "/map-vepfs/models/Qwen2.5-7B-Instruct"
+  tensor_parallel_size: 4
+  gpu_memory_utilization: 0.9
+  trust_remote_code: true
+
+# 推理参数
+inference:
+  max_tokens: 5120
+  batch_size: 32
+  temperature: 0
+  top_p: 0.9
+  top_k: -1
+  rollout_num: 1 # 默认为1，推理1次
+
+# 数据处理
+data:
+  input_file: "datas/proof_data/proving_train_qa_rollout1.json"
+  output_file: "datas/proof_data/proving_train_qa_rollout1_checklist_score.json"
+  original_field: "extra_info.check_list"
+  prompt_field: "check_prompt"
+  response_field: "${model.name}_check_response"
+  # num_samples: 32 # 测试用，实际推理时需要注释掉
+
+# Prompt配置
+prompts:
+  evaluation_template: "评估任务：请根据**响应**中是否包含**指定步骤**，对**响应**打分。响应和指定步骤可能用的不是同一套符号，你只需要判断响应包没包含指定步骤表达的意思。\n\n评分系统: \n- 提供你的最终分数为'[SCORE=X]'，其中X只能是0或1。\n- [SCORE=0]表示响应不包含指定步骤\n- [SCORE=1]表示响应包含指定步骤\n\n这是指令，响应和指定步骤。\n指令: {prompt} \n**响应**: {response}\n**指定步骤**: {proof_step}\n\n格式：\n1. 首先陈述你的最终分数为'[SCORE=X]'\n2. 然后提供简短的推理，解释为什么你认为响应中包含或不包含**指定步骤**的意思\n3. 如果包含，请指出响应中对应部分（即使使用了不同的符号表示）"
+  score_extraction_pattern: 'SCORE=(-?\d+(?:\.\d+)?)|boxed\{(-?\d+(?:\.\d+)?)\}|Score:?\s+(-?\d+(?:\.\d+)?)'
+
+# 处理器配置
+processor:
+  module: "processors.proof.score_checklist_processor"
+  pre_process: []
+  build_prompt: "build_prompt"
+  post_process: [extract_score] 
