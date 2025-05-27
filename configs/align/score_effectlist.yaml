@@ -26,12 +26,12 @@ data:
   original_field: "extra_info.effect_list"
   prompt_field: "effect_prompt"
   response_field: "${model.name}_effect_response"
-  # num_samples: 32 # 测试用，实际推理时需要注释掉
+  num_samples: null # 默认取全部数据。测试时可取具体值，例如只取32个样例
 
 # Prompt配置
 prompts:
   evaluation_template: "EVALUATION TASK: Please Score the quality of the model's RESPONSE to the given INSTRUCTION.\n\nSCORING SYSTEM:\n- Provide your final Score as '[SCORE=X]' where X is a number from 0 to 10. 0 is Lowest quality response, 10 is Highest quality response.\n\nEVALUATION CRITERIA:\n{criteria_list}\n\nHere are the INSTRUCTION and the RESPONSE.\nINSTRUCTION: {prompt}\nRESPONSE: {response}\n\nFORMAT: First state your final Score as '[SCORE=X]' based on all the EVALUATION CRITERIA, then provide your brief reasoning."
-  effect_score_extraction_pattern: '\[SCORE=(-?\d+(?:\.\d+)?)\]|boxed\{(-?\d+(?:\.\d+)?)\}|Score:?\s+(-?\d+(?:\.\d+)?)'
+  effect_score_extraction_pattern: 'SCORE=(-?\d+(?:\.\d+)?)|boxed\{(-?\d+(?:\.\d+)?)\}|Score:?\s+(-?\d+(?:\.\d+)?)'
 
 
 # 处理器配置
