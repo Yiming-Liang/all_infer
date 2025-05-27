@@ -6,6 +6,9 @@ logs/
 # 忽略outputs目录
 outputs/
 
+# 忽略结果文件 有可能大文件传不上去
+results/**/*.json
+
 # 忽略其他常见的临时文件
 __pycache__/
 *.py[cod]
