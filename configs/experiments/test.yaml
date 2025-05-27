@@ -35,10 +35,16 @@ prompts:
     问题：{question}
     
     回答：
-
 # 处理器配置
 processor:
   module: "processors.template_processor"
-  pre_process: ["validate_data"]           # 只做基本验证
+  pre_process: []           # 只做基本验证
   build_prompt: "build_prompt"             # 构建prompt
-  post_process: ["extract_answer"]         # 提取答案 
+  post_process: []         # 提取答案 
+
+# # 处理器配置
+# processor:
+#   module: "processors.template_processor"
+#   pre_process: ["validate_data"]           # 只做基本验证
+#   build_prompt: "build_prompt"             # 构建prompt
+#   post_process: ["extract_answer"]         # 提取答案 

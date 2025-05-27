@@ -1,0 +1,41 @@
+# 实验基本信息
+name: "align_2_score_checklist"
+description: "align 项目根据checklist并评分"
+
+# 模型配置
+model:
+  name: "qwen25_7B_Instruct"
+  path: "/map-vepfs/models/Qwen2.5-7B-Instruct"
+  tensor_parallel_size: 4
+  gpu_memory_utilization: 0.9
+  trust_remote_code: true
+
+# 推理参数
+inference:
+  max_tokens: 5120
+  batch_size: 32
+  temperature: 0
+  top_p: 0.9
+  top_k: -1
+  rollout_num: 10
+
+# 数据处理
+data:
+  input_file: "results/align/align_3_convertor_back_1_qa.json"
+  output_file: "results/align/align_3_convertor_back_2_score_checklist.json"
+  original_field: "extra_info.check_list"
+  prompt_field: "check_prompt"
+  response_field: "${model.name}_check_response"
+  # num_samples: 32 # 测试用，实际推理时需要注释掉
+
+# Prompt配置
+prompts:
+  evaluation_template: "EVALUATION TASK: Please Score the quality of the model's RESPONSE to the given INSTRUCTION based on ONE specific criterion.\n\nSCORING SYSTEM:\n- Provide your final Score as '[SCORE=X]' where X can ONLY be either 0 or 1. [SCORE=0]represents Response fails to meet the criterion, [SCORE=1] represents Response successfully meets the criterion.\n\nEVALUATION CRITERION:\n{criterion}\n\nHere are the INSTRUCTION and the RESPONSE.\nINSTRUCTION: {prompt}\nRESPONSE: {response}\n\nFORMAT: First state your final Score as '[SCORE=X]', then provide your brief reasoning based ONLY on the EVALUATION CRITERION above."
+  score_extraction_pattern: '\[SCORE=(-?\d+(?:\.\d+)?)\]|boxed\{(-?\d+(?:\.\d+)?)\}|Score:?\s+(-?\d+(?:\.\d+)?)'
+
+# 处理器配置
+processor:
+  module: "processors.align.score_checklist_processor"
+  pre_process: []
+  build_prompt: "build_prompt"
+  post_process: [extract_score] 

@@ -3,8 +3,6 @@
 # 简单问答推理脚本
 # 使用模板配置进行基础的问答推理
 
-echo "🚀 开始执行简单问答推理任务..."
-
 # 获取脚本所在目录的父目录（项目根目录）
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"

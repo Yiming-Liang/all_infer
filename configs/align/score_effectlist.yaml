@@ -1,0 +1,42 @@
+# 实验基本信息
+name: "align_3_score_effectlist"
+description: "align 项目根据effectlist并评分"
+
+# 模型配置
+model:
+  name: "qwen25_7B_Instruct"
+  path: "/map-vepfs/models/Qwen2.5-7B-Instruct"
+  tensor_parallel_size: 4
+  gpu_memory_utilization: 0.9
+  trust_remote_code: true
+
+# 推理参数
+inference:
+  max_tokens: 5120
+  batch_size: 32
+  temperature: 0
+  top_p: 0.9
+  top_k: -1
+  rollout_num: 1  # 推理次数，默认为1
+
+# 数据处理
+data:
+  input_file: "results/align/align_3_convertor_back_2_score_checklist.json"
+  output_file: "results/align/align_3_convertor_back_3_score_effectlist.json"
+  original_field: "extra_info.effect_list"
+  prompt_field: "effect_prompt"
+  response_field: "${model.name}_effect_response"
+  # num_samples: 32 # 测试用，实际推理时需要注释掉
+
+# Prompt配置
+prompts:
+  evaluation_template: "EVALUATION TASK: Please Score the quality of the model's RESPONSE to the given INSTRUCTION.\n\nSCORING SYSTEM:\n- Provide your final Score as '[SCORE=X]' where X is a number from 0 to 10. 0 is Lowest quality response, 10 is Highest quality response.\n\nEVALUATION CRITERIA:\n{criteria_list}\n\nHere are the INSTRUCTION and the RESPONSE.\nINSTRUCTION: {prompt}\nRESPONSE: {response}\n\nFORMAT: First state your final Score as '[SCORE=X]' based on all the EVALUATION CRITERIA, then provide your brief reasoning."
+  effect_score_extraction_pattern: '\[SCORE=(-?\d+(?:\.\d+)?)\]|boxed\{(-?\d+(?:\.\d+)?)\}|Score:?\s+(-?\d+(?:\.\d+)?)'
+
+
+# 处理器配置
+processor:
+  module: "processors.align.score_effectlist_processor"
+  pre_process: []
+  build_prompt: "build_prompt"
+  post_process: ["extract_score", "compute_weighted_score", "compute_all_final_avg_score"] 

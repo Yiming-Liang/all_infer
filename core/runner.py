@@ -1,14 +1,19 @@
 import importlib
 import json
-import yaml
+from pprint import pprint
 import logging
 from pathlib import Path
 from .infer import ModelManager, InferenceEngine
 from utils.logger import setup_logging, get_log_file
 
 class Runner:
-    def __init__(self, config_path):
-        self.config = self._load_config(config_path)
+    def __init__(self, config):
+        """
+        初始化Runner
+        config: 配置字典（已经由hydra解析好的）
+        """
+        self.config = config
+        # pprint(self.config, indent=2, width=250, depth=None)
         self.processor = self._load_processor()
         self.model_manager = ModelManager(self.config)
         self.inference_engine = InferenceEngine(self.model_manager)
@@ -18,18 +23,7 @@ class Runner:
         log_file = get_log_file(experiment_name)
         self.logger = setup_logging(log_file)
         self.logger.info(f"推理日志已配置，日志文件: {log_file}")
-        print(self.config)
-        
-    def _load_config(self, config_path):
-        """加载配置文件"""
-        with open(config_path, 'r', encoding='utf-8') as f:
-            if config_path.endswith('.yaml') or config_path.endswith('.yml'):
-                return yaml.safe_load(f)
-            elif config_path.endswith('.json'):
-                return json.load(f)
-            else:
-                raise ValueError(f"Unsupported config format: {config_path}")
-    
+
     def _load_processor(self):
         """动态加载用户自定义的处理器模块"""
         module_path = self.config['processor']['module']
@@ -71,6 +65,9 @@ class Runner:
             else:
                 raise ValueError(f"Unsupported file format: {input_file}")
         
+        if self.config['data'].get('num_samples', None) is not None:
+            data = data[:self.config['data'].get('num_samples')]
+        
         self.logger.info(f"成功加载 {len(data)} 条样本")
         
         # 2. 预处理
@@ -92,20 +89,40 @@ class Runner:
         batch_size = self.config['inference']['batch_size']
         prompt_field = self.config['data']['prompt_field']
         response_field = self.config['data']['response_field']
+        rollout_num = self.config['inference'].get('rollout_num', 1)  # 默认1次，向后兼容
         
-        self.logger.info(f"推理配置: batch_size={batch_size}, prompt_field={prompt_field}, response_field={response_field}")
+        self.logger.info(f"推理配置: batch_size={batch_size}, prompt_field={prompt_field}, response_field={response_field}, rollout_num={rollout_num}")
         
-        all_results = []
-        for i in range(0, len(data), batch_size):
-            batch = data[i:i + batch_size]
-            batch_results = self.inference_engine.batch_infer(
-                batch, 
-                prompt_field=prompt_field,
-                response_field=response_field
-            )
-            all_results.extend(batch_results)
-            processed_count = i + len(batch)
-            self.logger.info(f"已处理 {processed_count}/{len(data)} 条样本")
+        # 初始化结果，复制原始数据作为基础
+        all_results = [item.copy() for item in data]
+        
+        # 执行多次rollout推理
+        for rollout_idx in range(rollout_num):
+            current_response_field = f"{response_field}_{rollout_idx}"
+            self.logger.info(f"开始第 {rollout_idx+1}/{rollout_num} 次推理，结果将保存到字段: {current_response_field}")
+            
+            # 分批推理当前rollout
+            for i in range(0, len(data), batch_size):
+                batch = data[i:i + batch_size]
+                batch_results = self.inference_engine.batch_infer(
+                    batch, 
+                    prompt_field=prompt_field,
+                    response_field=current_response_field
+                )
+                
+                # 将当前rollout的结果合并到总结果中
+                for j, result in enumerate(batch_results):
+                    result_idx = i + j
+                    if result_idx < len(all_results):
+                        # 只添加新的response字段，保留其他字段
+                        all_results[result_idx][current_response_field] = result[current_response_field]
+                
+                processed_count = i + len(batch)
+                self.logger.info(f"第 {rollout_idx+1} 次推理已处理 {processed_count}/{len(data)} 条样本")
+            
+            self.logger.info(f"第 {rollout_idx+1}/{rollout_num} 次推理完成")
+        
+        self.logger.info(f"所有 {rollout_num} 次推理完成")
         
         # 5. 后处理
         post_process_funcs = self.config['processor'].get('post_process')

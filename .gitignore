@@ -1,0 +1,49 @@
+# 忽略所有log文件
+*.log
+logs/
+*.log.*
+
+# 忽略outputs目录
+outputs/
+
+# 忽略其他常见的临时文件
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE相关文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# 临时文件
+*.tmp
+*.temp 

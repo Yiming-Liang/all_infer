@@ -1,0 +1,3 @@
+# 默认配置文件 - 指向具体的配置文件
+defaults:
+  - configs/align/simple_qa.yaml 
